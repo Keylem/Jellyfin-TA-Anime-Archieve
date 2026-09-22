@@ -10,8 +10,6 @@ namespace Jellyfin.Plugin.Turkanime.Api;
 [Route("Plugins/Turkanime")]
 public sealed class TurkanimeController : ControllerBase
 {
-    private static readonly IVideoProvider[] Providers = [new MailRuProvider()];
-
     private static readonly CatalogService Catalog = new(
         configurationDirectoryPath: Path.Combine(AppContext.BaseDirectory, "plugins", "Turkanime"));
 
@@ -41,18 +39,7 @@ public sealed class TurkanimeController : ControllerBase
             return BadRequest("Invalid url query string value.");
         }
 
-        var provider = Providers.FirstOrDefault(x => x.CanHandle(uri));
-        if (provider is null)
-        {
-            return Ok(new PlaybackInfo
-            {
-                Provider = "external",
-                Mode = "external",
-                Url = uri.ToString()
-            });
-        }
-
-        var result = await provider.ResolveAsync(uri, cancellationToken).ConfigureAwait(false);
+        var result = await VideoProviderResolver.ResolveAsync(uri, cancellationToken).ConfigureAwait(false);
         return Ok(result);
     }
 }

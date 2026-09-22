@@ -6,6 +6,8 @@ public sealed class MailRuProvider : IVideoProvider
 {
     private static readonly string[] NativeExtensions = [".m3u8", ".mpd", ".mp4"];
 
+    public string Id => "mailru";
+
     public bool CanHandle(Uri url)
     {
         return url.Host.Contains("mail.ru", StringComparison.OrdinalIgnoreCase);
@@ -19,7 +21,7 @@ public sealed class MailRuProvider : IVideoProvider
         {
             return Task.FromResult(new PlaybackInfo
             {
-                Provider = "mailru",
+                Provider = Id,
                 Mode = "native",
                 Url = url.ToString()
             });
@@ -29,7 +31,7 @@ public sealed class MailRuProvider : IVideoProvider
         {
             return Task.FromResult(new PlaybackInfo
             {
-                Provider = "mailru",
+                Provider = Id,
                 Mode = "embed",
                 Url = url.ToString()
             });
@@ -42,7 +44,7 @@ public sealed class MailRuProvider : IVideoProvider
 
             return Task.FromResult(new PlaybackInfo
             {
-                Provider = "mailru",
+                Provider = Id,
                 Mode = "embed",
                 Url = embedUri.ToString()
             });
@@ -50,7 +52,7 @@ public sealed class MailRuProvider : IVideoProvider
 
         return Task.FromResult(new PlaybackInfo
         {
-            Provider = "mailru",
+            Provider = Id,
             Mode = "external",
             Url = url.ToString()
         });

@@ -10,6 +10,8 @@ Minimal Jellyfin 12-oriented TürkAnime plugin scaffold.
   - `GET /Plugins/Turkanime/Resolve?url=...`
 - `/Jellyfin.Plugin.Turkanime/Providers/MailRuProvider.cs`
   - Provider abstraction for Mail.ru URL handling
+- `/Jellyfin.Plugin.Turkanime/Providers/VideoProviderResolver.cs`
+  - Dynamic provider detection from episode URLs
 - `/Jellyfin.Plugin.Turkanime/Web/`
   - Searchable TürkAnime page and playback routing (`native` / `embed` / `external`)
 
@@ -28,7 +30,6 @@ The plugin persists catalogue data in a JSON file named `anime.json` in the plug
           "id": "ep-1",
           "number": 1,
           "title": "Episode 1",
-          "provider": "mailru",
           "url": "https://my.mail.ru/video/embed/example/episode1"
         }
       ]
@@ -36,3 +37,5 @@ The plugin persists catalogue data in a JSON file named `anime.json` in the plug
   ]
 }
 ```
+
+`provider` is resolved dynamically from each episode `url` during catalog load.

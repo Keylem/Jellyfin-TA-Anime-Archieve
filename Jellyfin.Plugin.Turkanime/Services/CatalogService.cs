@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Jellyfin.Plugin.Turkanime.Models;
+using Jellyfin.Plugin.Turkanime.Providers;
 
 namespace Jellyfin.Plugin.Turkanime.Services;
 
@@ -45,6 +46,7 @@ public sealed class CatalogService
                 Directory.CreateDirectory(directory);
 
                 var seed = CreateSeedCatalog();
+                NormalizeCatalog(seed);
                 var seedJson = JsonSerializer.Serialize(seed, SerializerOptions);
                 await File.WriteAllTextAsync(_catalogPath, seedJson, Encoding.UTF8, cancellationToken).ConfigureAwait(false);
                 return seed;
@@ -52,22 +54,7 @@ public sealed class CatalogService
 
             var json = await File.ReadAllTextAsync(_catalogPath, cancellationToken).ConfigureAwait(false);
             var catalog = JsonSerializer.Deserialize<CatalogDocument>(json, SerializerOptions) ?? new CatalogDocument();
-
-            foreach (var anime in catalog.Anime)
-            {
-                if (string.IsNullOrWhiteSpace(anime.Id))
-                {
-                    anime.Id = Slugify(anime.Title);
-                }
-
-                foreach (var episode in anime.Episodes)
-                {
-                    if (string.IsNullOrWhiteSpace(episode.Id))
-                    {
-                        episode.Id = $"ep-{episode.Number}";
-                    }
-                }
-            }
+            NormalizeCatalog(catalog);
 
             return catalog;
         }
@@ -94,7 +81,6 @@ public sealed class CatalogService
                             Id = "ep-1",
                             Number = 1,
                             Title = "Episode 1",
-                            Provider = "mailru",
                             Url = "https://my.mail.ru/video/embed/example/episode1"
                         }
                     ]
@@ -110,13 +96,33 @@ public sealed class CatalogService
                             Id = "ep-1",
                             Number = 1,
                             Title = "Episode 1",
-                            Provider = "mailru",
                             Url = "https://my.mail.ru/video/embed/example/naruto1"
                         }
                     ]
                 }
             ]
         };
+    }
+
+    private static void NormalizeCatalog(CatalogDocument catalog)
+    {
+        foreach (var anime in catalog.Anime)
+        {
+            if (string.IsNullOrWhiteSpace(anime.Id))
+            {
+                anime.Id = Slugify(anime.Title);
+            }
+
+            foreach (var episode in anime.Episodes)
+            {
+                if (string.IsNullOrWhiteSpace(episode.Id))
+                {
+                    episode.Id = $"ep-{episode.Number}";
+                }
+
+                episode.Provider = VideoProviderResolver.DetectProvider(episode.Url);
+            }
+        }
     }
 
     private static string Slugify(string value)
