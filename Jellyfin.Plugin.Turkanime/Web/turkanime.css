@@ -1,0 +1,26 @@
+.turkanime-page {
+  padding: 1.5rem;
+}
+
+.turkanime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.turkanime-card {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.turkanime-card button {
+  margin-top: 0.75rem;
+}
+
+.turkanime-player {
+  width: 100%;
+  min-height: 480px;
+  border: 0;
+}
