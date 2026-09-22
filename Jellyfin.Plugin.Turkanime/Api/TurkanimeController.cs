@@ -10,14 +10,24 @@ namespace Jellyfin.Plugin.Turkanime.Api;
 [Route("Plugins/Turkanime")]
 public sealed class TurkanimeController : ControllerBase
 {
-    private static readonly CatalogService Catalog = new(
-        configurationDirectoryPath: Path.Combine(AppContext.BaseDirectory, "plugins", "Turkanime"));
+    private static CatalogService CreateCatalog()
+    {
+        var configPath = Plugin.Instance?.ConfigurationFilePath;
+        var configDir = string.IsNullOrWhiteSpace(configPath) ? null : Path.GetDirectoryName(configPath);
+        if (string.IsNullOrWhiteSpace(configDir))
+        {
+            configDir = Path.Combine(AppContext.BaseDirectory, "plugins", "Turkanime");
+        }
+
+        return new CatalogService(configDir);
+    }
 
     [HttpGet("Anime")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<Anime>>> GetAnime(CancellationToken cancellationToken)
     {
-        var anime = await Catalog.GetAnimeAsync(cancellationToken).ConfigureAwait(false);
+        var catalog = CreateCatalog();
+        var anime = await catalog.GetAnimeAsync(cancellationToken).ConfigureAwait(false);
         return Ok(anime);
     }
 
@@ -25,7 +35,8 @@ public sealed class TurkanimeController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<Episode>>> GetEpisodes([FromRoute] string id, CancellationToken cancellationToken)
     {
-        var episodes = await Catalog.GetEpisodesAsync(id, cancellationToken).ConfigureAwait(false);
+        var catalog = CreateCatalog();
+        var episodes = await catalog.GetEpisodesAsync(id, cancellationToken).ConfigureAwait(false);
         return Ok(episodes);
     }
 
