@@ -15,27 +15,18 @@ Minimal Jellyfin 12-oriented TürkAnime plugin scaffold.
 - `/Jellyfin.Plugin.Turkanime/Web/`
   - Searchable TürkAnime page and playback routing (`native` / `embed` / `external`)
 
-## Catalogue JSON
+## Catalogue source
 
-The plugin persists catalogue data in a JSON file named `anime.json` in the plugin configuration directory.
+The plugin follows the `turkanime-indirici` flow:
 
-```json
-{
-  "anime": [
-    {
-      "id": "one-piece",
-      "title": "One Piece",
-      "episodes": [
-        {
-          "id": "ep-1",
-          "number": 1,
-          "title": "Episode 1",
-          "url": "https://my.mail.ru/video/embed/example/episode1"
-        }
-      ]
-    }
-  ]
-}
-```
+- Reads manifest from:
+  - `https://raw.githubusercontent.com/KebabLord/turkanime-indirici/refs/heads/master/manifest.json`
+- Uses `animedepo_url` from that manifest (default:
+  - `https://gitlab.com/AnimeDepo/animedepo/-/raw/master`)
+- Fetches anime list from `dizin.json`
+- Fetches episode list from `animeler/{slug}/bolumler.json`
+- Fetches episode sources from `animeler/{slug}/{episodeSlug}.json`
 
-`provider` is resolved dynamically from each episode `url` during catalog load.
+If remote fetch fails, it falls back to local `anime.json` in the plugin configuration directory.
+
+`provider` is resolved dynamically from each episode URL.
