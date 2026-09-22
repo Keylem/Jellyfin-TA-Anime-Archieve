@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TürkAnime</title>
+  <link rel="stylesheet" href="turkanime.css" />
+</head>
+<body>
+  <main class="turkanime-page">
+    <h1>TürkAnime</h1>
+    <label>
+      <span>Search anime</span>
+      <input id="search" type="search" placeholder="Search anime..." />
+    </label>
+
+    <section id="anime-grid" class="turkanime-grid"></section>
+
+    <section id="episode-section" hidden>
+      <h2 id="episode-title"></h2>
+      <ul id="episode-list"></ul>
+    </section>
+
+    <section id="player-section" hidden>
+      <h2>Playback</h2>
+      <video id="native-player" class="turkanime-player" controls hidden></video>
+      <iframe id="embed-player" class="turkanime-player" allowfullscreen hidden title="External player"></iframe>
+      <p id="external-link" hidden><a target="_blank" rel="noopener noreferrer">Open external player</a></p>
+    </section>
+  </main>
+
+  <script>
+    const animeGrid = document.getElementById('anime-grid');
+    const episodeSection = document.getElementById('episode-section');
+    const episodeTitle = document.getElementById('episode-title');
+    const episodeList = document.getElementById('episode-list');
+    const playerSection = document.getElementById('player-section');
+    const nativePlayer = document.getElementById('native-player');
+    const embedPlayer = document.getElementById('embed-player');
+    const externalLink = document.getElementById('external-link');
+    const externalLinkAnchor = externalLink.querySelector('a');
+
+    let allAnime = [];
+
+    const hidePlayers = () => {
+      nativePlayer.hidden = true;
+      nativePlayer.removeAttribute('src');
+      nativePlayer.load();
+
+      embedPlayer.hidden = true;
+      embedPlayer.removeAttribute('src');
+
+      externalLink.hidden = true;
+      externalLinkAnchor.removeAttribute('href');
+    };
+
+    const renderAnime = (items) => {
+      animeGrid.innerHTML = '';
+      for (const anime of items) {
+        const card = document.createElement('article');
+        card.className = 'turkanime-card';
+
+        const title = document.createElement('h3');
+        title.textContent = anime.title;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Open →';
+        button.addEventListener('click', () => loadEpisodes(anime));
+
+        card.append(title, button);
+        animeGrid.appendChild(card);
+      }
+    };
+
+    const loadEpisodes = async (anime) => {
+      const response = await fetch(`/Plugins/Turkanime/Anime/${encodeURIComponent(anime.id)}/Episodes`);
+      if (!response.ok) {
+        return;
+      }
+
+      const episodes = await response.json();
+      episodeTitle.textContent = anime.title;
+      episodeList.innerHTML = '';
+
+      episodes.forEach((episode) => {
+        const item = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = `${episode.number}. ${episode.title}`;
+        button.addEventListener('click', () => playEpisode(episode.url));
+        item.appendChild(button);
+        episodeList.appendChild(item);
+      });
+
+      hidePlayers();
+      playerSection.hidden = true;
+      episodeSection.hidden = false;
+    };
+
+    const playEpisode = async (url) => {
+      const response = await fetch(`/Plugins/Turkanime/Resolve?url=${encodeURIComponent(url)}`);
+      if (!response.ok) {
+        return;
+      }
+
+      const playbackInfo = await response.json();
+      hidePlayers();
+      playerSection.hidden = false;
+
+      if (playbackInfo.mode === 'native') {
+        nativePlayer.src = playbackInfo.url;
+        nativePlayer.hidden = false;
+        return;
+      }
+
+      if (playbackInfo.mode === 'embed') {
+        embedPlayer.src = playbackInfo.url;
+        embedPlayer.hidden = false;
+        return;
+      }
+
+      externalLinkAnchor.href = playbackInfo.url;
+      externalLink.hidden = false;
+    };
+
+    const loadAnime = async () => {
+      const response = await fetch('/Plugins/Turkanime/Anime');
+      if (!response.ok) {
+        return;
+      }
+
+      allAnime = await response.json();
+      renderAnime(allAnime);
+    };
+
+    document.getElementById('search').addEventListener('input', (event) => {
+      const query = event.target.value.trim().toLowerCase();
+      if (!query) {
+        renderAnime(allAnime);
+        return;
+      }
+
+      renderAnime(allAnime.filter((item) => item.title.toLowerCase().includes(query)));
+    });
+
+    loadAnime();
+  </script>
+</body>
+</html>
