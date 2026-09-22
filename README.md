@@ -30,3 +30,17 @@ The plugin follows the `turkanime-indirici` flow:
 If remote fetch fails, it falls back to local `anime.json` in the plugin configuration directory.
 
 `provider` is resolved dynamically from each episode URL.
+
+Supported source detection:
+- Sibnet
+- Odnoklassinki
+- Myvi
+- Sendvid
+- Mail.ru
+- MP4upload
+- Vidmoly
+- Dailymotion
+- Yandisk
+- Uqload
+- Drive
+- VK
